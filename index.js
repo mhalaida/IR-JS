@@ -1,6 +1,7 @@
 let fs = require("fs");
 let outputIndex = "indexFinal.txt";
 let outputMatrix = "matrixFinal.txt";
+let outputJSON = "invIndex.json";
 let inputDir = "./inputcollection/";
 let inDirFileArr = [];
 let t0 = new Date()
@@ -68,13 +69,13 @@ for (const word in invIndex) {
 //WRITING INCIDENCE MATRIX TO MATRIXFINAL
 fs.writeFile(outputMatrix, '', function () { });
 let writerMat = fs.createWriteStream(outputMatrix, { flags: 'a' });
-writerMat.write("document ID:"); 
-for (let i = 0; i < (19 - "document ID".length); i++) { 
-    writerMat.write(' '); 
+writerMat.write("document ID:");
+for (let i = 0; i < (19 - "document ID".length); i++) {
+    writerMat.write(' ');
 }
 for (let i = 0; i < inDirFileArr.length; i++) {
-    writerMat.write((i+1) + "  ");
-    if (i == inDirFileArr.length-1) {
+    writerMat.write((i + 1) + "  ");
+    if (i == inDirFileArr.length - 1) {
         writerMat.write("\n\n");
     }
 }
@@ -93,4 +94,9 @@ for (const word in invIndex) {
     writerMat.write("\n");
 }
 
-console.log("Execution time: " + (t1 - t0) + "ms\n");
+fs.writeFile(outputJSON, '', function () { });
+fs.writeFile(outputJSON, JSON.stringify(invIndex), (err) => {if (err) throw error;});
+
+console.log("Retrieval time: " + (t1 - t0) + "ms\n\n");
+console.log("Incidence matrix saved to: " + outputMatrix);
+console.log("Inverted index saved to: " + outputIndex);
