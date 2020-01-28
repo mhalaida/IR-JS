@@ -1,5 +1,6 @@
 let fs = require("fs");
 let outputIndex = "indexFinal.txt";
+let outputMatrix = "matrixFinal.txt";
 let inputDir = "./inputcollection/";
 let inDirFileArr = [];
 let t0 = new Date()
@@ -16,7 +17,7 @@ fs.readdirSync(inputDir).forEach(file => {
 inDirFileArr.forEach(function (fileName, fileIndex) {
     let filepath = inputDir + fileName;
     let data = fs.readFileSync(filepath).toString('utf-8');
-    data = data.toUpperCase().split(/[^a-zA-Z]/);
+    data = data.toUpperCase().split(/[^a-zA-Z']/);
     auxData = auxData.concat(data);
     data.forEach(word => {
         if (isNaN(word)) {
@@ -41,7 +42,7 @@ auxData.forEach(unsWord => {
         if (invIndex[unsWord] == undefined) {
             invIndex[unsWord] = [];
         }
-        invIndex[unsWord].push(auxIndex[unsWord]);
+        invIndex[unsWord] = (auxIndex[unsWord]);
     }
 });
 
@@ -53,11 +54,39 @@ for (const word in invIndex) {
 
 let t1 = new Date();
 
-//WRITING TO FILE
+//WRITING INVERTED INDEX TO INDEXFINAL
 fs.writeFile(outputIndex, '', function () { });
-let writer = fs.createWriteStream(outputIndex, { flags: 'a' });
+let writerInd = fs.createWriteStream(outputIndex, { flags: 'a' });
 for (const word in invIndex) {
-    writer.write(word + " => " + invIndex[word] + "\n");
+    writerInd.write(word + " => " + invIndex[word] + "\n");
+}
+
+//WRITING INCIDENCE MATRIX TO MATRIXFINAL
+fs.writeFile(outputMatrix, '', function () { });
+let writerMat = fs.createWriteStream(outputMatrix, { flags: 'a' });
+writerMat.write("document ID:"); 
+for (let i = 0; i < (19 - "document ID".length); i++) { 
+    writerMat.write(' '); 
+}
+for (let i = 0; i < inDirFileArr.length; i++) {
+    writerMat.write((i+1) + "  ");
+    if (i == inDirFileArr.length-1) {
+        writerMat.write("\n\n");
+    }
+}
+for (const word in invIndex) {
+    writerMat.write(word);
+    for (let i = 0; i < (20 - word.length); i++) {
+        writerMat.write(' ');
+    }
+    for (let i = 0; i < inDirFileArr.length; i++) {
+        if (invIndex[word].includes(i + 1)) {
+            writerMat.write("1  ");
+        } else {
+            writerMat.write("0  ");
+        }
+    }
+    writerMat.write("\n");
 }
 
 console.log("Execution time: " + (t1 - t0) + "ms\n");
