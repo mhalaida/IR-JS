@@ -17,7 +17,7 @@ fs.readdirSync(inputDir).forEach(file => {
 inDirFileArr.forEach(function (fileName, fileIndex) {
     let filepath = inputDir + fileName;
     let data = fs.readFileSync(filepath).toString('utf-8');
-    data = data.toUpperCase().split(/[^a-zA-Z']/);
+    data = data.toUpperCase().split(/[^a-zA-Z]/);
     auxData = auxData.concat(data);
     data.forEach(word => {
         if (isNaN(word)) {
@@ -58,7 +58,11 @@ let t1 = new Date();
 fs.writeFile(outputIndex, '', function () { });
 let writerInd = fs.createWriteStream(outputIndex, { flags: 'a' });
 for (const word in invIndex) {
-    writerInd.write(word + " => " + invIndex[word] + "\n");
+    writerInd.write(word);
+    for (let i = 0; i < (20 - word.length); i++) {
+        writerInd.write(' ');
+    }
+    writerInd.write(" => " + invIndex[word] + "\n");
 }
 
 //WRITING INCIDENCE MATRIX TO MATRIXFINAL
