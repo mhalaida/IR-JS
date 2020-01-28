@@ -95,8 +95,9 @@ for (const word in invIndex) {
 }
 
 fs.writeFile(outputJSON, '', function () { });
-fs.writeFile(outputJSON, JSON.stringify(invIndex), (err) => {if (err) throw error;});
+fs.writeFile(outputJSON, JSON.stringify(invIndex), (err) => { if (err) throw error; });
 
 console.log("Retrieval time: " + (t1 - t0) + "ms\n\n");
 console.log("Incidence matrix saved to: " + outputMatrix);
 console.log("Inverted index saved to: " + outputIndex);
+console.log("Auxilary JSON saved to: " + outputJSON);
