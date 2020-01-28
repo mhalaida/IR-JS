@@ -45,12 +45,12 @@ while (searchInput.length > 1) {
 //CHECKING IF THE RESULT IS EMPTY
 if (searchInput[0].length < 1) {
     searchInput[0] = "not found."
+} else {
+    //SORTING THE RESULT
+    searchInput[0].sort(function(a, b) {
+        return (+a) - (+b);
+    })
 }
-
-//SORTING THE RESULT
-searchInput[0].sort(function(a, b) {
-    return (+a) - (+b);
-});
 
 let t1 = new Date();
 
