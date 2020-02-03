@@ -1,7 +1,19 @@
 let fs = require("fs");
 
 module.exports = {
-    //OUTPUT FOR INVERTED INDEX
+    //OUTPUT FOR INVERTED INDEX (LIST)
+    writeInvIndexList: function (outputIndex, invIndex) {
+        fs.writeFile(outputIndex, '', function () { });
+        let writerInd = fs.createWriteStream(outputIndex, { flags: 'a' });
+        // for (const word in invIndex) {
+        //     writerInd.write(word);
+        //     for (let i = 0; i < (20 - word.length); i++) {
+        //         writerInd.write(' ');
+        //     }
+        //     writerInd.write(" => " + invIndex[word] + "\n");
+        // }
+    },
+    //OUTPUT FOR INVERTED INDEX (ARRAY)
     writeInvIndex: function (outputIndex, invIndex) {
         fs.writeFile(outputIndex, '', function () { });
         let writerInd = fs.createWriteStream(outputIndex, { flags: 'a' });
