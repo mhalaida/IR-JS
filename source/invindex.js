@@ -13,12 +13,14 @@ module.exports = {
                 if (isNaN(word)) {
                     wordCount++;
                     if (invIndex[word] == undefined) {
-                        invIndex[word] = {};
+                        invIndex[word] = { frequency: 0};
                     }
                     if (invIndex[word][fileName] == undefined) {
                         invIndex[word][fileName] = [wordCount];
+                        invIndex[word]["frequency"]++;
                     } else {
                         invIndex[word][fileName].push(wordCount);
+                        invIndex[word]["frequency"]++;
                     }
                 }
             });
