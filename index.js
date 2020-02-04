@@ -1,28 +1,30 @@
 let fs = require("fs");
-let IRoutput = require("./output");
-let IRindex = require("./invindex");
+let IRoutput = require("./source/output");
+let IRindex = require("./source/invindex");
 
-let outputPosIndex = "posIndexFinal.txt";
-let outputBiwIndex = "biwIndexFinal.txt"
-let outputJSON = "invIndex.json";
+let outputPosIndex = "./out/posIndexFinal.txt"
+let outputBiwIndex = "./out/biwIndexFinal.txt"
+let outputPosJSON = "./out/posIndex.json";
+let outputBiwJSON = "./out/biwIndex.json";
 let inputDir = "./inputcollection/";
 
-let inDirFileArr = [];
 
 //GETTING THE FILENAMES
+let inDirFileArr = [];
 fs.readdirSync(inputDir).forEach(file => {
     inDirFileArr.push(file);
 });
 
 let t0 = new Date();
 let posIndex = IRindex.buildPosIndex(inDirFileArr, inputDir);
-let biwIndex = IRindex.buildBiwIndex(inDirFileArr, inputDir);
 let t1 = new Date();
+let biwIndex = IRindex.buildBiwIndex(inDirFileArr, inputDir);
+let t2 = new Date();
 
 IRoutput.writePosIndex(outputPosIndex, posIndex);
 IRoutput.writeBiwIndex(outputBiwIndex, biwIndex);
-// IRoutput.writeInvIndexJSON(outputJSON, invIndex);
+IRoutput.writePosIndexJSON(outputPosJSON, posIndex);
+IRoutput.writeBiwIndexJSON(outputBiwJSON, biwIndex);
 
-console.log("Retrieval time: " + (t1 - t0) + "ms\n\n");
-// console.log("Inverted index saved to: " + outputIndex);
-// console.log("Auxilary JSON saved to: " + outputJSON);
+console.log("\nPosition index building time: " + (t1 - t0) + "ms\n");
+console.log("Biword index building time: " + (t2 - t1) + "ms\n")
