@@ -1,27 +1,25 @@
 let fs = require("fs");
 
 module.exports = {
-    //POSITION INVERTED INDEX
+    //POSITION INDEX
     buildPosIndex: function (collArr, collDir) {
         let invIndex = {};
         collArr.forEach(function (fileName, fileIndex) {
             let filepath = collDir + fileName;
             let data = fs.readFileSync(filepath).toString('utf-8');
-            data = data.toUpperCase().split(/[^a-zA-Z]/);
+            data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
             let wordCount = 0;
             data.forEach(word => {
-                if (isNaN(word)) {
-                    wordCount++;
-                    if (invIndex[word] == undefined) {
-                        invIndex[word] = { frequency: 0};
-                    }
-                    if (invIndex[word][fileName] == undefined) {
-                        invIndex[word][fileName] = [wordCount];
-                        invIndex[word]["frequency"]++;
-                    } else {
-                        invIndex[word][fileName].push(wordCount);
-                        invIndex[word]["frequency"]++;
-                    }
+                wordCount++;
+                if (invIndex[word] == undefined) {
+                    invIndex[word] = { frequency: 0 };
+                }
+                if (invIndex[word][fileName] == undefined) {
+                    invIndex[word][fileName] = [wordCount];
+                    invIndex[word]["frequency"]++;
+                } else {
+                    invIndex[word][fileName].push(wordCount);
+                    invIndex[word]["frequency"]++;
                 }
             });
         });
@@ -39,16 +37,14 @@ module.exports = {
         collArr.forEach(function (fileName, fileIndex) {
             let filepath = collDir + fileName;
             let data = fs.readFileSync(filepath).toString('utf-8');
-            data = data.toUpperCase().split(/[^a-zA-Z]/);
+            data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
             for (let i = 0; i < data.length; i++) {
-                if (isNaN(data[i])) {
-                    let currToken = data[i] + " " + data[i + 1];
-                    if (invIndex[currToken] == undefined) {
-                        invIndex[currToken] = [];
-                    }
-                    if (!invIndex[currToken].includes(fileName)) {
-                        invIndex[currToken].push(fileName);
-                    }
+                let currToken = data[i] + " " + data[i + 1];
+                if (invIndex[currToken] == undefined) {
+                    invIndex[currToken] = [];
+                }
+                if (!invIndex[currToken].includes(fileName)) {
+                    invIndex[currToken].push(fileName);
                 }
             }
         });
