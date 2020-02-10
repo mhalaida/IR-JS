@@ -1,6 +1,8 @@
 let fs = require("fs");
+let pt = require("./preftree");
 
 module.exports = {
+
     //OUTPUT FOR POSITION INDEX
     writePosIndex: function (outputIndex, invIndex) {
         fs.writeFile(outputIndex, '', function () { });
@@ -27,6 +29,16 @@ module.exports = {
                 writerInd.write(String(invIndex[token][j]) + "\n");
             }
         }
+    },
+
+    //OUTPUT FOR DICTIONARY
+    writeDict: function(outputDict, dict) {
+        fs.writeFile(outputDict, '', function() { });
+        let writerDict = fs.createWriteStream(outputDict, { flags: 'a' });
+        dict.forEach(token => {
+            writerDict.write(token);
+            writerDict.write("\n");
+        });
     },
 
     //POSITION INDEX TO JSON

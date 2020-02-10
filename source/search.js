@@ -1,7 +1,36 @@
 const fs = require("fs");
-const _ = require('underscore')
+const _ = require('underscore');
+let pt = require("./preftree");
 
 module.exports = {
+
+    //WILDCARD QUERY FOR PERMUTERM INDEX
+    searchWildPermInd: function (prefTree, permIndex, invIndex, input) {
+        input = input.toUpperCase().split(/[^a-zA-Z*]/).filter(function (ch) { return ch.length != 0; });
+        input = input + "$";
+        while (input.charAt(input.length - 1) != '*') {
+            input = input.concat(input[0]);
+            input = input.substring(1);
+        }
+        input = input.substring(0, input.length - 1);
+        let foundRotations = prefTree.find(input);
+        let foundWords = [];
+        for (let key in permIndex) {
+            permIndex[key].forEach(rotation => {
+                if (foundRotations.includes(rotation)) {
+                    foundWords.push(key)
+                }
+            })
+        };
+        let resultIndex = {};
+        for (let word in invIndex) {
+            if (foundWords.includes(word)) {
+                resultIndex[word] = invIndex[word];
+            }
+        }
+        return resultIndex;
+    },
+
     //PHRASE SEARCH IN BIWORD INDEX
     searchBiwIndPhra: function (biwIndex, input) {
         input = input.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
