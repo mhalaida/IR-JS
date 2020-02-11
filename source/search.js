@@ -4,6 +4,11 @@ let pt = require("./preftree");
 
 module.exports = {
 
+    //WILDCARD QUERY FOR K-GRAM INDEX
+    searchWildKgramInd: function() {
+
+    },
+
     //WILDCARD QUERY FOR PERMUTERM INDEX
     searchWildPermInd: function (prefTree, permIndex, invIndex, input) {
         input = input.toUpperCase().split(/[^a-zA-Z*]/).filter(function (ch) { return ch.length != 0; });
@@ -12,13 +17,26 @@ module.exports = {
             input = input.concat(input[0]);
             input = input.substring(1);
         }
+        //IF MULTIPLE WILDCARDS (if (number of '*' > 1))
+        if (input.replace(/[^*]/g, "").length > 1) {
+            var multWildcard = true;
+            var leftOutPart = input.slice(0, input.indexOf('*'));
+            input = input.slice(input.indexOf('*') + 1, input.length);
+        }        
+        //TRIM LAST WILDCARD
         input = input.substring(0, input.length - 1);
         let foundRotations = prefTree.find(input);
         let foundWords = [];
         for (let key in permIndex) {
             permIndex[key].forEach(rotation => {
                 if (foundRotations.includes(rotation)) {
-                    foundWords.push(key)
+                    if (multWildcard) {
+                        if (key.includes(leftOutPart)) {
+                            foundWords.push(key);
+                        }
+                    } else {
+                        foundWords.push(key);
+                    }
                 }
             })
         };

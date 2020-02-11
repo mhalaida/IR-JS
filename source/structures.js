@@ -24,7 +24,7 @@ module.exports = {
             permIndex[token] = [];
             auxToken = token;
             auxToken = auxToken.concat("$");
-            for (let i = 0; i < token.length; i++) {
+            for (let i = 0; i < token.length + 1; i++) {
                 permIndex[token].push(auxToken);
                 auxToken = auxToken.concat(auxToken[0]);
                 auxToken = auxToken.substr(1);
