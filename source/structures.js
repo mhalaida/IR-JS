@@ -2,44 +2,60 @@ let fs = require("fs");
 let pt = require("./preftree");
 
 module.exports = {
-    //K-GRAM INDEX
-    buildKgramIndex: function (dict, k) {
+    //K-GRAM INDEX FROM INVERTED INDEX
+    buildKgramIndex: function (invIndex, k) {
         let kgramIndex = {};
-        dict.forEach(token => {
-            kgramIndex[token] = [];
+        let auxToken;
+        let subToken;
+        for (const token in invIndex) {
             auxToken = token;
             auxToken = "$" + auxToken + "$";
             for (let i = 0; i < token.length; i++) {
                 subToken = auxToken.substring(i, i + k);
-                kgramIndex[token].push(subToken);
-            }
+                if (kgramIndex[subToken] == undefined) {
+                    kgramIndex[subToken] = [];
+                }
+                kgramIndex[subToken].push(token);
+            };
+        };
+        let orderedKgramIndex = {};
+        Object.keys(kgramIndex).sort().forEach(function (key) {
+            orderedKgramIndex[key] = kgramIndex[key];
         });
-        return kgramIndex;
+        return orderedKgramIndex;
     },
 
-    //PERMUTERM INDEX
-    buildPermIndex: function (dict) {
+    //PERMUTERM INDEX FROM INVERTED INDEX
+    buildPermIndex: function (invIndex) {
         let permIndex = {};
-        dict.forEach(token => {
-            permIndex[token] = [];
+        let auxIndex = {};
+        let auxToken;
+        for (const token in invIndex) {
+            auxIndex[token] = [];
             auxToken = token;
             auxToken = auxToken.concat("$");
-            for (let i = 0; i < token.length + 1; i++) {
-                permIndex[token].push(auxToken);
+            for (let i = 0; i < auxToken.length; i++) {
+                auxIndex[token].push(auxToken);
                 auxToken = auxToken.concat(auxToken[0]);
                 auxToken = auxToken.substr(1);
-            }
-        });
+            };
+        };
+        for (const token in auxIndex) {
+            auxIndex[token].forEach(rotation => {
+                if (permIndex[rotation] == undefined) {
+                    permIndex[rotation] = [];
+                }
+                permIndex[rotation].push(token);
+            });
+        };
         return permIndex;
     },
 
     //PREFIX TREE FROM PERMUTERM INDEX 
-    buildPrefTreeFromPermInd: function (index) {
+    buildPrefTree: function (index) {
         let prefTree = new pt.PrefTree();
         for (let key in index) {
-            index[key].forEach(rotation => {
-                prefTree.insert(rotation);
-            })
+            prefTree.insert(key);
         };
         return prefTree;
     },
@@ -47,7 +63,7 @@ module.exports = {
     //POSITION INDEX
     buildPosIndex: function (collArr, collDir) {
         let invIndex = {};
-        collArr.forEach(function (fileName, fileIndex) {
+        collArr.forEach(fileName => {
             let filepath = collDir + fileName;
             let data = fs.readFileSync(filepath).toString('utf-8');
             data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
@@ -97,22 +113,5 @@ module.exports = {
             orderedInvIndex[key] = invIndex[key];
         });
         return orderedInvIndex;
-    },
-
-    //DICTIONARY OF UNIQUE WORDS
-    buildDict: function (collArr, collDir) {
-        let dictionary = [];
-        collArr.forEach(function (fileName) {
-            let filepath = collDir + fileName;
-            let data = fs.readFileSync(filepath).toString('utf-8');
-            data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
-            data.forEach(token => {
-                if (!dictionary.includes(token)) {
-                    dictionary.push(token);
-                }
-            })
-        });
-        dictionary.sort();
-        return dictionary;
     }
 }

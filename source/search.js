@@ -5,47 +5,64 @@ let pt = require("./preftree");
 module.exports = {
 
     //WILDCARD QUERY FOR K-GRAM INDEX
-    searchWildKgramInd: function() {
+    searchWildThrgramInd: function (kgramIndex, invIndex, input) {
+        input = input.toUpperCase().split(/[^a-zA-Z*]/).filter(function (ch) { return ch.length != 0; });
+        input = "$" + input + "$";
+        input = input.split('*');
+        //CHECKING IF ANY GRAM IS LONGER THAN K
+        input.forEach(token => {
+            if (token.length > 3) {
+                for (let ch = token.length - 2; ch != 0; ch--) {
+                    input.unshift(token.substring(ch - 1, ch + 2));
+                };
+                input.splice(token.length - 2, 1)
+            };
+        });
 
+        let inputPostings = [];
+        for (let i = 0; i < input.length; i++) {
+            inputPostings[i] = kgramIndex[input[i]];
+        }
+        let foundWords = _.intersection(...inputPostings);
+        let resultIndex = {};
+        foundWords.forEach(word => {
+            resultIndex[word] = invIndex[word];
+        });
+        return resultIndex;
     },
 
     //WILDCARD QUERY FOR PERMUTERM INDEX
     searchWildPermInd: function (prefTree, permIndex, invIndex, input) {
         input = input.toUpperCase().split(/[^a-zA-Z*]/).filter(function (ch) { return ch.length != 0; });
+        //TRANSFORM THE QUERY TO THE NECESSARY FORM
         input = input + "$";
         while (input.charAt(input.length - 1) != '*') {
             input = input.concat(input[0]);
             input = input.substring(1);
-        }
-        //IF MULTIPLE WILDCARDS (if (number of '*' > 1))
+        };
+        //IF MULTIPLE WILDCARDS (if (number of '*' > 1)) ONLY EDGES MATTER
         if (input.replace(/[^*]/g, "").length > 1) {
             var multWildcard = true;
             var leftOutPart = input.slice(0, input.indexOf('*'));
             input = input.slice(input.indexOf('*') + 1, input.length);
-        }        
+        }
         //TRIM LAST WILDCARD
         input = input.substring(0, input.length - 1);
         let foundRotations = prefTree.find(input);
         let foundWords = [];
-        for (let key in permIndex) {
-            permIndex[key].forEach(rotation => {
-                if (foundRotations.includes(rotation)) {
-                    if (multWildcard) {
-                        if (key.includes(leftOutPart)) {
-                            foundWords.push(key);
-                        }
-                    } else {
-                        foundWords.push(key);
-                    }
-                }
-            })
-        };
-        let resultIndex = {};
-        for (let word in invIndex) {
-            if (foundWords.includes(word)) {
-                resultIndex[word] = invIndex[word];
+        foundRotations.forEach(rotation => {
+            if (multWildcard) {
+                if (rotation.includes(leftOutPart)) {
+                    foundWords.push(permIndex[rotation]);
+                };
+            } else {
+                foundWords.push(permIndex[rotation]);
             }
-        }
+        });
+        let resultIndex = {};
+        foundWords.forEach(word => {
+            resultIndex[word] = invIndex[word];
+        });
         return resultIndex;
     },
 
