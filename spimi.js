@@ -1,40 +1,69 @@
 let fs = require("fs");
 let path = require("path");
-let recursiveReadDir = require("./node_modules/recursive-readdir");
+let sizeof = require("./node_modules/object-sizeof")
+
 
 module.exports = {
 
-    spimiIndex(inputDir) {
-        spimiInd = buildSpimi(inputDir, 0);
-        return spimiInd;
+    fileStream: function (dirPath, fileStream) {
+        return buildFileStream(dirPath, fileStream);
+    },
+
+    buildSpimi: function (fileStream, outDir) {
+        let invIndex = {};
+        let fileNameCount = 1;
+        fileStream.forEach((filePath, fileIndex) => {
+            let data = fs.readFileSync(filePath).toString('utf-8');
+            data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
+            data.forEach((token, tokenIndex) => {
+
+                if ((tokenIndex % 10000) == 0) {
+                    console.log(fileIndex + " ------ " + tokenIndex + " ------ " + sizeof(invIndex));
+                }
+                // console.log(token + " ------- " + fileIndex);
+                // console.log(sizeof(invIndex/1e+6 + "MB"));
+
+                //CHANGE THE SIZE IF NECESSARY (4e+?)
+                if (sizeof(invIndex) > 2000) {
+                    let sortedInvIndex = {};
+                    Object.keys(invIndex).sort().forEach((key) => {
+                        sortedInvIndex[key] = invIndex[key];
+                    });
+                    let outputJSON = outDir + "block" + fileNameCount + ".json";
+                    fileNameCount++;
+                    fs.writeFile(outputJSON, JSON.stringify(sortedInvIndex), (err) => { if (err) throw err; });
+                    invIndex = {};
+
+                    console.log("2KB written");
+                }
+
+                if (invIndex[token] == undefined) {
+                    invIndex[token] = [];
+                };
+                if (!invIndex[token].includes(fileIndex)) {
+                    invIndex[token].push(fileIndex);
+                }
+            });
+        });
+        let sortedInvIndex = {};
+        Object.keys(invIndex).sort().forEach((key) => {
+            sortedInvIndex[key] = invIndex[key];
+        });
+        let outputJSON = outDir + "block" + fileNameCount + ".json";
+        fs.writeFile(outputJSON, JSON.stringify(sortedInvIndex), (err) => { if (err) throw err; });
     }
 }
 
-function buildSpimi(dirPath, fileCount) {
-    fileCount = fileCount || 0;
+function buildFileStream(dirPath, fileStream) {
+    fileStream = fileStream || 0;
     fs.readdirSync(dirPath).forEach(function (file) {
         let filepath = path.join(dirPath, file);
         let stat = fs.statSync(filepath);
         if (stat.isDirectory()) {
-            fileCount = buildSpimi(filepath, fileCount);
+            fileStream = buildFileStream(filepath, fileStream);
         } else {
-            fileCount++;
-            let data = fs.readFileSync(filepath).toString('utf-8');
-            data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
-            let invIndex = {};
-            for (let i = 0; i < data.length; i++) {
-                if (invIndex[data[i]] == undefined) {
-                    invIndex[data[i]] = [];
-                }
-                if (!invIndex[data[i]].includes(fileCount)) {
-                    invIndex[data[i]].push(fileCount);
-                }
-            }
-            console.log(fileCount)
-            // console.log(data.length);
-            // console.log("aight: ");
-            // console.log(invIndex);
+            fileStream.push(filepath);
         }
     });
-    return fileCount;
+    return fileStream;
 }
