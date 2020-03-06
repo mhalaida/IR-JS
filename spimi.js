@@ -1,11 +1,42 @@
 let fs = require("fs");
 let path = require("path");
+let readline = require("readline")
 
 module.exports = {
 
-    mergeBlocks: function () {
+    mergeBlocks: function (dirPath) {
         let masterIndex = {};
+        let postingArr = [];
+        let readInterface;
+        let dirSize;
+        fs.readdirSync(dirPath).forEach((block, blockIndex) => {
+            let data = fs.readFileSync(dirPath + block).toString('utf-8');
+            data = data.split("\n").filter(function (ch) { return ch.length != 0; });;
 
+            data.forEach(subArray => {
+                let postingArr = subArray.split(',');
+                let token = postingArr.shift();
+                if (masterIndex[token] == undefined) {
+                    masterIndex[token] = postingArr;
+                };
+                postingArr.forEach(posting => {
+                    if (!masterIndex[token].includes(posting)) {
+                        masterIndex[token].push(posting);
+                    }
+                })
+            });
+        });
+        let sortedMaster = {};
+        Object.keys(masterIndex).sort().forEach(key => {
+            sortedMaster[key] = masterIndex[key];
+        });
+        let resStr = "";
+        for (let sToken in sortedMaster) {
+            resStr += sToken + " => " + sortedMaster[sToken] + "\n";
+        };
+        fs.writeFile(dirPath + "master", "", (err) => { if (err) console.log(err); });
+        fs.writeFile(dirPath + "master", resStr, (err) => { if (err) console.log(err); });
+        console.log("master - written;")
     },
 
     fileStream: function (dirPath, fileStream) {
@@ -58,7 +89,7 @@ module.exports = {
         });
         outputTXT = outDir + "block" + fileNameCount;
         for (let SItoken in sortedInvIndex) {
-            resString += SItoken + "," + sortedInvIndex[SItoken].toString();
+            resString += SItoken + "," + sortedInvIndex[SItoken].toString() + "\n";
         };
         fs.writeFile(outputTXT, resString, (err) => { if (err) console.log(error); });
         console.log(outputTXT + " - written;");
@@ -66,7 +97,7 @@ module.exports = {
         let t1 = new Date();
 
         resultStats["Total number of files indexed"] = fileStream.length;
-        resultStats["Total time to build SPIMI"] = (t1-t0)/1000 + "sec";
+        resultStats["Total time to build SPIMI"] = (t1 - t0) / 1000 + "sec";
 
         return resultStats;
     }

@@ -5,6 +5,9 @@ let inputDir = "/Users/m.halaida/Desktop/gutenberg/4/";
 fileStream = [];
 let result = spimi.fileStream(inputDir, fileStream);
 console.table(result)
+
 console.log("Finished building the filestream");
 
 console.log(spimi.buildSpimi(result, outputDir));
+
+spimi.mergeBlocks(outputDir);
