@@ -5,10 +5,10 @@ let readline = require("readline")
 module.exports = {
 
     mergeBlocks: function (dirPath) {
+        let resStats = {};
         let masterIndex = {};
-        let postingArr = [];
-        let readInterface;
-        let dirSize;
+
+        let t0 = new Date();
         fs.readdirSync(dirPath).forEach((block, blockIndex) => {
             let data = fs.readFileSync(dirPath + block).toString('utf-8');
             data = data.split("\n").filter(function (ch) { return ch.length != 0; });;
@@ -37,6 +37,12 @@ module.exports = {
         fs.writeFile(dirPath + "master", "", (err) => { if (err) console.log(err); });
         fs.writeFile(dirPath + "master", resStr, (err) => { if (err) console.log(err); });
         console.log("master - written;")
+
+        let t1 = new Date();
+
+        resStats["Total time to merge blocks"] = (t1 - t0) / 1000 + " sec";
+
+        return resStats;
     },
 
     fileStream: function (dirPath, fileStream) {
@@ -97,7 +103,7 @@ module.exports = {
         let t1 = new Date();
 
         resultStats["Total number of files indexed"] = fileStream.length;
-        resultStats["Total time to build SPIMI"] = (t1 - t0) / 1000 + "sec";
+        resultStats["Total time to build SPIMI"] = (t1 - t0) / 1000 + " sec";
 
         return resultStats;
     }
