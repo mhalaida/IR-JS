@@ -1,56 +1,74 @@
 let fs = require("fs");
 let path = require("path");
-let sizeof = require("./node_modules/object-sizeof")
-
 
 module.exports = {
+
+    mergeBlocks: function () {
+        let masterIndex = {};
+
+    },
 
     fileStream: function (dirPath, fileStream) {
         return buildFileStream(dirPath, fileStream);
     },
 
     buildSpimi: function (fileStream, outDir) {
+        let resultStats = {};
         let invIndex = {};
+        let sortedInvIndex = {};
         let fileNameCount = 1;
+        let outputTXT = "";
+        let entryCounter = 0;
+        let resString = "";
+        let t0 = new Date();
         fileStream.forEach((filePath, fileIndex) => {
             let data = fs.readFileSync(filePath).toString('utf-8');
             data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
-            data.forEach((token, tokenIndex) => {
-
-                if ((tokenIndex % 10000) == 0) {
-                    console.log(fileIndex + " ------ " + tokenIndex + " ------ " + sizeof(invIndex));
-                }
-                // console.log(token + " ------- " + fileIndex);
-                // console.log(sizeof(invIndex/1e+6 + "MB"));
-
-                //CHANGE THE SIZE IF NECESSARY (4e+?)
-                if (sizeof(invIndex) > 2000) {
-                    let sortedInvIndex = {};
+            data.forEach(token => {
+                //CHANGE THE THRESHHOLD IF NECESSARY
+                if (entryCounter > 100000) {
                     Object.keys(invIndex).sort().forEach((key) => {
                         sortedInvIndex[key] = invIndex[key];
                     });
-                    let outputJSON = outDir + "block" + fileNameCount + ".json";
-                    fileNameCount++;
-                    fs.writeFile(outputJSON, JSON.stringify(sortedInvIndex), (err) => { if (err) throw err; });
+                    outputTXT = outDir + "block" + fileNameCount;
+                    for (let SItoken in sortedInvIndex) {
+                        resString += SItoken + "," + sortedInvIndex[SItoken].toString();
+                        resString += "\n";
+                    };
+                    fs.writeFile(outputTXT, resString, (err) => { if (err) console.log(error); });
+                    resString = "";
+                    entryCounter = 0;
+                    sortedInvIndex = {};
                     invIndex = {};
-
-                    console.log("2KB written");
-                }
-
+                    console.log(outputTXT + " - written;");
+                    fileNameCount++;
+                };
                 if (invIndex[token] == undefined) {
                     invIndex[token] = [];
+                    entryCounter++;
                 };
                 if (!invIndex[token].includes(fileIndex)) {
                     invIndex[token].push(fileIndex);
-                }
+                    entryCounter++;
+                };
             });
         });
-        let sortedInvIndex = {};
         Object.keys(invIndex).sort().forEach((key) => {
             sortedInvIndex[key] = invIndex[key];
         });
-        let outputJSON = outDir + "block" + fileNameCount + ".json";
-        fs.writeFile(outputJSON, JSON.stringify(sortedInvIndex), (err) => { if (err) throw err; });
+        outputTXT = outDir + "block" + fileNameCount;
+        for (let SItoken in sortedInvIndex) {
+            resString += SItoken + "," + sortedInvIndex[SItoken].toString();
+        };
+        fs.writeFile(outputTXT, resString, (err) => { if (err) console.log(error); });
+        console.log(outputTXT + " - written;");
+
+        let t1 = new Date();
+
+        resultStats["Total number of files indexed"] = fileStream.length;
+        resultStats["Total time to build SPIMI"] = (t1-t0)/1000 + "sec";
+
+        return resultStats;
     }
 }
 
