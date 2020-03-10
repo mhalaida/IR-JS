@@ -10,6 +10,10 @@ module.exports = {
 
         let t0 = new Date();
         fs.readdirSync(dirPath).forEach((block, blockIndex) => {
+            //SKIP DS_STORE (TECHNICAL MACOS FILE)
+            if (block == ".DS_Store") {
+                return;
+            };
             let data = fs.readFileSync(dirPath + block).toString('utf-8');
             data = data.split("\n").filter(function (ch) { return ch.length != 0; });;
 
