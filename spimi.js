@@ -4,6 +4,13 @@ let readline = require("readline")
 
 module.exports = {
 
+    compressIndex: function (masterInput, compIndex, compDict) {
+        fs.writeFile(compDict, "", () => { });
+        fs.writeFile(compIndex, "", () => { });
+
+        readMasterByLine(masterInput, compIndex, compDict);
+    },
+
     mergeBlocks: function (dirPath) {
         let resStats = {};
         let masterIndex = {};
@@ -29,6 +36,7 @@ module.exports = {
                     }
                 })
             });
+            console.log(block + " - read;")
         });
         let sortedMaster = {};
         Object.keys(masterIndex).sort().forEach(key => {
@@ -36,7 +44,7 @@ module.exports = {
         });
         let resStr = "";
         for (let sToken in sortedMaster) {
-            resStr += sToken + " => " + sortedMaster[sToken] + "\n";
+            resStr += sToken + "," + sortedMaster[sToken] + "\n";
         };
         fs.writeFile(dirPath + "master", "", (err) => { if (err) console.log(err); });
         fs.writeFile(dirPath + "master", resStr, (err) => { if (err) console.log(err); });
@@ -67,7 +75,7 @@ module.exports = {
             data = data.toUpperCase().split(/[^a-zA-Z]/).filter(function (ch) { return ch.length != 0; });
             data.forEach(token => {
                 //CHANGE THE THRESHHOLD IF NECESSARY
-                if (entryCounter > 100000) {
+                if (entryCounter > 5000000) {
                     Object.keys(invIndex).sort().forEach((key) => {
                         sortedInvIndex[key] = invIndex[key];
                     });
@@ -111,6 +119,49 @@ module.exports = {
 
         return resultStats;
     }
+}
+
+function readMasterByLine(masterInput, compIndex, compDict) {
+    let readInterface = readline.createInterface({
+        input: fs.createReadStream(masterInput),
+        console: false
+    });
+
+    let charCount = 0;
+
+    readInterface.on('line', (line) => {
+        charCount = coreCompressor(line, compIndex, compDict, charCount)
+    })
+}
+
+function coreCompressor(line, compIndex, compDict, charCount) {
+    line = line.split(",");
+
+    let term = line.shift();
+    line = compressLine(line);
+
+    charCount += term.length;
+
+    fs.writeFileSync(compDict, term, { flag: 'a' });
+    fs.writeFileSync(compIndex, charCount + ":" + line.length + ":" + line.toString() + "\n", { flag: 'a' });
+
+    return charCount;
+}
+
+function compressLine(line) {
+
+    let oldPrevVal = line[0];
+    let temp;
+
+    for (let i = 0; i < line.length; i++) {
+        if (i != 0) {
+            temp = line[i];
+            line[i] = line[i] - oldPrevVal;
+            oldPrevVal = temp;
+        };
+    };
+
+    return line;
 }
 
 function buildFileStream(dirPath, fileStream) {
