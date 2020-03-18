@@ -53,6 +53,9 @@ function zoneToIndex(zone, zoneIndex, zoneName, bookName) {
         }
         if (!zoneIndex[token + "." + zoneName].includes(bookName)) {
             zoneIndex[token + "." + zoneName].push(bookName);
+            zoneIndex[token + "." + zoneName].push(1);
+        } else {
+            zoneIndex[token + "." + zoneName][zoneIndex[token + "." + zoneName].indexOf(bookName)+1]++;
         }
     })
 }
